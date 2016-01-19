@@ -10,6 +10,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 #import "JDStatusBarNotification.h"
+#define JD_NOTIFICATION_HEIGHT  20
 
 @interface JDStatusBarStyle (Hidden)
 + (NSArray*)allDefaultStyleIdentifier;
@@ -19,12 +20,27 @@
 @interface JDStatusBarNotificationViewController : UIViewController
 @end
 
+@interface JDStatusBarNotificationWindow : UIWindow
+
+@end
+
+@implementation JDStatusBarNotificationWindow
+
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+    if (point.y > 0 && point.y < JD_NOTIFICATION_HEIGHT) {
+        return [super hitTest:point withEvent: event];
+    }
+    return nil;
+}
+
+@end
+
 @interface UIApplication (mainWindow)
 - (UIWindow*)mainApplicationWindowIgnoringWindow:(UIWindow*)ignoringWindow;
 @end
 
 @interface JDStatusBarNotification ()
-@property (nonatomic, strong, readonly) UIWindow *overlayWindow;
+@property (nonatomic, strong, readonly) JDStatusBarNotificationWindow *overlayWindow;
 @property (nonatomic, strong, readonly) UIView *progressView;
 @property (nonatomic, strong, readonly) JDStatusBarView *topBar;
 
@@ -416,10 +432,10 @@
 - (UIWindow *)overlayWindow;
 {
     if(_overlayWindow == nil) {
-        _overlayWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        _overlayWindow = [[JDStatusBarNotificationWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
         _overlayWindow.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         _overlayWindow.backgroundColor = [UIColor clearColor];
-        _overlayWindow.userInteractionEnabled = NO;
+        _overlayWindow.userInteractionEnabled = YES;
         _overlayWindow.windowLevel = UIWindowLevelStatusBar;
         _overlayWindow.rootViewController = [[JDStatusBarNotificationViewController alloc] init];
         _overlayWindow.rootViewController.view.backgroundColor = [UIColor clearColor];
